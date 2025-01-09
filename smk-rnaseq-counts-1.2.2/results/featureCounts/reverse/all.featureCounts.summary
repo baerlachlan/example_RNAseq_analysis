@@ -1,0 +1,15 @@
+Status	results/align/bam/S01_upf1.bam	results/align/bam/S02_upf1.bam	results/align/bam/S03_upf1.bam	results/align/bam/S04_control.bam	results/align/bam/S05_control.bam	results/align/bam/S06_control.bam	results/align/bam/S07_control.bam	results/align/bam/S08_control.bam	results/align/bam/S09_control.bam
+Assigned	83589065	70433233	70407397	77225160	71464804	64070429	62178214	79874972	74153077
+Unassigned_Unmapped	0	0	0	0	0	0	0	0	0
+Unassigned_Read_Type	0	0	0	0	0	0	0	0	0
+Unassigned_Singleton	0	0	0	0	0	0	0	0	0
+Unassigned_MappingQuality	0	0	0	0	0	0	0	0	0
+Unassigned_Chimera	0	0	0	0	0	0	0	0	0
+Unassigned_FragmentLength	0	0	0	0	0	0	0	0	0
+Unassigned_Duplicate	0	0	0	0	0	0	0	0	0
+Unassigned_MultiMapping	13912425	6589343	6923830	8348558	17948941	7048739	5955225	6330280	5859190
+Unassigned_Secondary	0	0	0	0	0	0	0	0	0
+Unassigned_NonSplit	0	0	0	0	0	0	0	0	0
+Unassigned_NoFeatures	4319153	4029107	4286167	4362079	7839528	6989434	6552354	8075736	8097134
+Unassigned_Overlapping_Length	28610886	25516607	25413085	28038342	19009762	17181709	16554302	20929753	19691705
+Unassigned_Ambiguity	1729052	1386564	1371618	1594190	1489559	1373859	1340015	1700726	1670201

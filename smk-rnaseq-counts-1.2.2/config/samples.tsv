@@ -1,0 +1,10 @@
+sample	id	filename	sex	species	tissue	group	project	sequenced_by	sequence_library	sequence_machine	read_length	read_type
+S01_upf1	60954	9-LDJ6753_L3	M	human	Fibroblast	UPF1	30-586349365	GeneWiz	stranded	NovoSeq6000	150	paired
+S02_upf1	60953	10-LDJ6754_L3	M	human	Fibroblast	UPF1	30-586349365	GeneWiz	stranded	NovoSeq6000	150	paired
+S03_upf1	60952	11-LDJ6755_L3	F	human	Fibroblast	UPF1	30-586349365	GeneWiz	stranded	NovoSeq6000	150	paired
+S04_control	MC_60949	12-LDJ6756_L3	M	human	Fibroblast	Control	30-586349365	GeneWiz	stranded	NovoSeq6000	150	paired
+S05_control	MC_54365	13-LDJ6757_L3	M	human	Fibroblast	Control	30-586349365	GeneWiz	stranded	NovoSeq6000	150	paired
+S06_control	MC_54356	14-LDJ6758_L3	M	human	Fibroblast	Control	30-586349365	GeneWiz	stranded	NovoSeq6000	150	paired
+S07_control	FC_60950	15-LDJ6759_L3	F	human	Fibroblast	Control	30-586349365	GeneWiz	stranded	NovoSeq6000	150	paired
+S08_control	FC_60951	16-LDJ6760_L3	F	human	Fibroblast	Control	30-586349365	GeneWiz	stranded	NovoSeq6000	150	paired
+S09_control	FC_60427	17-LDJ6761_L3	F	human	Fibroblast	Control	30-586349365	GeneWiz	stranded	NovoSeq6000	150	paired
