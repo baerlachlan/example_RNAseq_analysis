@@ -1,0 +1,32 @@
+project:
+  title: "Example RNA-seq Analysis"
+  type: website
+  output-dir: ../docs
+
+website:
+  back-to-top-navigation: true
+  sidebar:
+    style: "floating"
+    search: true
+    border: true
+    contents:
+      - text: Home
+        href: index.qmd
+      - text: Quality control
+        href: qc.qmd
+      - text: DGE
+        href: example_RNAseq_analysis.qmd
+    tools:
+      - icon: github
+        href: https://github.com/baerlachlan/240930_UPF1_mutant.git
+  search:
+    location: sidebar
+    type: overlay
+
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+    toc: true
+    toc-depth: 5
