@@ -12,13 +12,11 @@ website:
     contents:
       - text: Home
         href: index.qmd
-      - text: Quality control
-        href: qc.qmd
       - text: DGE
         href: example_RNAseq_analysis.qmd
     tools:
       - icon: github
-        href: https://github.com/baerlachlan/240930_UPF1_mutant.git
+        href: https://github.com/baerlachlan/example_RNAseq_analysis
   search:
     location: sidebar
     type: overlay
