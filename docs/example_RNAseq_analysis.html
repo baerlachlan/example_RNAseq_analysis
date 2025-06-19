@@ -217,7 +217,7 @@ window.Quarto = {
   <li><a href="#counts" id="toc-counts" class="nav-link" data-scroll-target="#counts">Counts</a>
   <ul>
   <li><a href="#loading-count-data" id="toc-loading-count-data" class="nav-link" data-scroll-target="#loading-count-data">Loading count data</a></li>
-  <li><a href="#filtering" id="toc-filtering" class="nav-link" data-scroll-target="#filtering">Filtering</a></li>
+  <li><a href="#filtering-count-data" id="toc-filtering-count-data" class="nav-link" data-scroll-target="#filtering-count-data">Filtering count data</a></li>
   </ul></li>
   <li><a href="#principal-component-analysis" id="toc-principal-component-analysis" class="nav-link" data-scroll-target="#principal-component-analysis">Principal Component Analysis</a></li>
   <li><a href="#differential-expression" id="toc-differential-expression" class="nav-link" data-scroll-target="#differential-expression">Differential Expression</a>
@@ -232,6 +232,7 @@ window.Quarto = {
   <li><a href="#ma-plot" id="toc-ma-plot" class="nav-link" data-scroll-target="#ma-plot">MA plot</a></li>
   </ul></li>
   </ul></li>
+  <li><a href="#concluding-remarks" id="toc-concluding-remarks" class="nav-link" data-scroll-target="#concluding-remarks">Concluding remarks</a></li>
   <li><a href="#session-information" id="toc-session-information" class="nav-link" data-scroll-target="#session-information">Session information</a></li>
   </ul>
 </nav>
@@ -260,7 +261,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">LAST MODIFIED</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">10 January, 2025</p>
+      <p class="date-modified">21 January, 2025</p>
     </div>
   </div>
     
@@ -280,7 +281,7 @@ Todo:
 -->
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
-<p>This document outlines the steps to perform a differential expression analysis at the gene-level, with explanations of code, methods and best practices throughout. You may notice that this file has the <code>.qmd</code> extension, specifying it as a Quarto document. This can be considered the “next generation” of R Markdown. At it’s core, Quarto works the same way as R Markdown. However, Quarto provides some additional functionality that can be very useful. Code chunks and text from existing R Markdown documents can be transferred to Quarto documents and should simply just work.</p>
+<p>This document outlines the steps to perform a differential expression analysis at the gene-level, with explanations of code, methods and best practices throughout. You may notice that this file has the <code>.qmd</code> extension, specifying it as a Quarto document. This can be considered the “next generation” of R Markdown. At it’s core, Quarto works the same way as R Markdown. However, Quarto provides some additional functionality that can be useful. Code chunks and text from existing R Markdown documents can be transferred to Quarto documents and should simply just work.</p>
 <p>Quarto/R Markdown provides an authoring framework for data science. In a single document, the user can incorporate both code and paragraphs of text. When generating the report, the code gets executed and its output is displayed in the report. This enables analyses that can easily be turned into high quality reports to share with an audience. Importantly, this facilitates reproducibility, and frequent rendering of the report is encouraged to ensure code runs from top to bottom. It is even possible to insert inline code, allowing the values of variables to be reported within a paragraph of text. For example, let’s use a code chunk to generate a random number sampled from a normal distribution with mean of 0 and standard deviation of 1, and assign it to the variable <code>random_normal</code>:</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -288,7 +289,7 @@ Todo:
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>random_normal <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">n =</span> <span class="dv">1</span>, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>We can now use this variable to report our result: The randomly sampled number was -1.3626755. You will notice each time you generate the report from this document, the number will change.</p>
+<p>We can now use this variable to report our result: The randomly sampled number was -1.9570161. You will notice each time you generate the report from this document, the number will change.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -299,7 +300,7 @@ Tip
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Code chunks require a header, which in its most simple form exists as <code>{r}</code>. I have assigned a label to the above code chunk, which is best practice but completely optional. Naming code chunks is handy for debugging, and incredibly useful when the code outputs a plot. Quarto generates the plot as a <code>png</code> file with a filename corresponding to the chunk label, and saves it in a convenient location. This saves the hassle of writing further code to save a figure, and it can easily be shared with colleagues, used for a presentation, etc. Chunk headers won’t be visible in the final report, but instead control how that particular code chunk acts.</p>
+<p>Code chunks require a header, which is displayed in its most simple form as <code>{r}</code>. I have assigned a label to the above code chunk, which is best practice but completely optional. Naming code chunks is handy for debugging, and incredibly useful when the code outputs a plot. Quarto generates the plot as a <code>png</code> file with a filename corresponding to the chunk label, and saves it in a convenient location. This saves the hassle of writing further code to save a figure, and it can easily be shared with colleagues, used for a presentation, etc. Chunk headers won’t be visible in the final report, but instead control how that particular code chunk acts.</p>
 </div>
 </div>
 <p>There is plenty more you can do with Quarto and R Markdown. Follow these links to the <a href="https://quarto.org/docs/guide/">Quarto</a> and <a href="https://rmarkdown.rstudio.com/lesson-1.html">R Markdown</a> documentation.</p>
@@ -325,7 +326,7 @@ Tip
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="at">version =</span> <span class="st">"3.20"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>If Bioconductor was successfully installed, you will have access to the <code>BiocManager</code> package. Using <code>BiocManager</code> is the recommended way to install any additional packages.</p>
+<p>If Bioconductor was successfully installed, you will have access to the <code>BiocManager</code> package. Using <code>BiocManager</code> is the recommended way to install any further packages.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -619,13 +620,13 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>From here onwards we set up our analysis to perform differential expression (DE) testing using the <code>edgeR</code> package. Another commonly used package for DE analysis is <code>DESeq2</code>. While the overall goal and methodology is conceptually similar between the two approaches, this is where some steps may diverge, particular in the use of R objects and functions. There is no correct choice between the two packages, they are both incredibly robust approaches that perform as such. The <a href="https://www.bioconductor.org/packages/devel/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf">edgeR User’s Guide</a> is filled with extensive information and use cases for the methodology in the following sections.</p>
+<p>From here onwards we set up our analysis to perform differential expression (DE) testing using the <code>edgeR</code> package. Another commonly used package for DE analysis is <code>DESeq2</code>. While the overall goal and methodology is conceptually similar between the two approaches, this is where some steps may diverge, particular in the use of R objects and functions. There is no correct choice between the two packages, they are both incredibly robust approaches that perform as such. The <a href="https://www.bioconductor.org/packages/devel/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf">edgeR User’s Guide</a> is filled with extensive information and use cases for the methodology implemented in the following sections.</p>
 </div>
 </div>
 </section>
-<section id="filtering" class="level2">
-<h2 class="anchored" data-anchor-id="filtering">Filtering</h2>
-<p><code>edgeR</code> utilises a <code>DGEList</code> object to store data throughout the analysis. A <code>DGEList</code> is very similar to a base R <code>list</code> and can be manipulated as such. The main elements that comprise a <code>DGEList</code> is a <code>counts</code> matrix (as loaded above) and a <code>samples</code> data.frame containing sample metadata. Here we also append a<code>genes</code> element containing gene feature annotations. Once the <code>DGEList</code> is initialised, we remove genes with low expression.</p>
+<section id="filtering-count-data" class="level2">
+<h2 class="anchored" data-anchor-id="filtering-count-data">Filtering count data</h2>
+<p><code>edgeR</code> utilises a <code>DGEList</code> object to store data throughout the analysis. A <code>DGEList</code> is very similar to a <code>base</code> R <code>list</code> and can be manipulated as such. The main elements that comprise a <code>DGEList</code> is a <code>counts</code> matrix (as loaded above) and a <code>samples</code> data.frame containing sample metadata. Here we also append a<code>genes</code> element containing gene feature annotations. Once the <code>DGEList</code> is initialised, we remove genes with low expression.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -676,7 +677,7 @@ Note
 <span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Before filtering"</span>,</span>
 <span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"logCPM"</span>,</span>
 <span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Density"</span>,</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">colour =</span> <span class="st">"Type"</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">colour =</span> <span class="st">"Group"</span></span>
 <span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>dens_filt <span class="ot">&lt;-</span> <span class="fu">cpm</span>(dge_list, <span class="at">log =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
@@ -693,7 +694,7 @@ Note
 <span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"After filtering"</span>,</span>
 <span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"logCPM"</span>,</span>
 <span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Density"</span>,</span>
-<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        <span class="at">colour =</span> <span class="st">"Type"</span></span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        <span class="at">colour =</span> <span class="st">"Group"</span></span>
 <span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a><span class="fu">ggarrange</span>(dens_unfilt, dens_filt, <span class="at">common.legend =</span> <span class="cn">TRUE</span>, <span class="at">legend =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
@@ -706,7 +707,7 @@ Note
 </div>
 </div>
 </div>
-<p>Here we can see that prior to filtering, the majority of genes in each sample had very low (or no) counts. The fact that all our samples follow a similar distribution is an indication of good quality data. In particular, we expect samples belonging to the same group to follow a similar distribution.</p>
+<p>Here we can see that prior to filtering, the majority of genes counted in each sample had very low (or no) counts. The fact that all our samples follow a similar distribution is an indication of good quality data. In particular, we expect samples belonging to the same group to follow a similar distribution.</p>
 </section>
 </section>
 <section id="principal-component-analysis" class="level1">
@@ -723,7 +724,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Normalisation in <code>edgeR</code> is performed using the <a href="https://doi.org/10.1186/gb-2010-11-3-r25">trimmed mean of M values (TMM) method</a>. TMM normalisation accounts for both library size and composition, allowing (with assumptions) expression estimates of the same gene to be compared across different samples. Be aware that this does not allow expression estimates of different genes to be compared either within or between samples. TMM normalisation is performed in R with the <code>normLibSizes()</code> function, resulting in normalisation factors that are stored in the <code>samples</code> element of our <code>DGEList</code> object. Normalisation factors are used to calculate effective library sizes. We executed this function above when creating the <code>DGEList</code>.</p>
+<p>Normalisation in <code>edgeR</code> is performed using the <a href="https://doi.org/10.1186/gb-2010-11-3-r25">trimmed mean of M values (TMM) method</a>. TMM normalisation accounts for both library size and composition, allowing (with assumptions) expression estimates of the same gene to be compared across different samples. Be aware that this does not allow expression estimates of different genes to be compared either within or between samples. TMM normalisation is performed in R with the <code>normLibSizes()</code> function, resulting in normalisation factors that are stored in the <code>samples</code> element of our <code>DGEList</code> object. Normalisation factors are used to calculate effective library sizes, which are then used to calculate CPM. We executed this function above when creating the <code>DGEList</code>.</p>
 </div>
 </div>
 <div class="cell">
@@ -842,7 +843,7 @@ Note
 <h1>Differential Expression</h1>
 <section id="design-matrix" class="level2">
 <h2 class="anchored" data-anchor-id="design-matrix">Design matrix</h2>
-<p>The design matrix is a critical component of statistical modelling approaches to determine differential expression. It defines the experimental design and specifies how the variables in a study relate to the observed gene expression data. I find <a href="10.12688/f1000research.27893.1">this paper</a> an incredibly useful resource to construct both simple and complex design matrices.</p>
+<p>The design matrix is a critical component of statistical modelling approaches to determine differential expression. It defines the experimental design and specifies how the variables in a study relate to the observed gene expression data. I find <a href="10.12688/f1000research.27893.1">this paper</a> an incredibly useful resource to guide the construction of both simple and complex design matrices.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -975,7 +976,7 @@ Caution
 </section>
 <section id="fitting-the-model" class="level2">
 <h2 class="anchored" data-anchor-id="fitting-the-model">Fitting the model</h2>
-<p>Here’s where the smart stuff happens. I’ll attempt to provide a simplified summary of the implemented methodology. For a proper explanation, see the references in section 1.2 of the <a href="https://www.bioconductor.org/packages/devel/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf">edgeR User’s Guide</a>.</p>
+<p>Here’s where the smart stuff happens. I’ll attempt to provide a simplified summary of the methodology. For a proper explanation, see the references in section 1.2 of the <a href="https://www.bioconductor.org/packages/devel/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf">edgeR User’s Guide</a>.</p>
 <p>The first step is to estimate the dispersion (variability) in the data with the <code>estimateDisp()</code> function. This estimates three types of dispersion:</p>
 <ul>
 <li>Common dispersion: The mean dispersion across all genes.</li>
@@ -1007,7 +1008,7 @@ Caution
 <span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>We now have gene-level assigned <em>p</em>-values, as well as other relevant stats in our <code>tt</code> variable. Before we take a look at the results, let’s check some plots to ensure everything looks as expected for RNA-seq data.</p>
+<p>We now have gene-level assigned <em>p</em>-values, as well as other relevant stats in our <code>tt</code> object. Before we take a look at the results, let’s check some plots to ensure everything looks as expected for RNA-seq data.</p>
 <p>A mean-variance plot can be used to explore the relationship between the mean expression levels of genes and their variance. This helps to assess the assumptions of <code>edgeR</code>’s methodology, which models gene expression using the negative binomial distribution. Here we are looking to evaluate the model fit. If our data points follow the negative binomial line closely, this indicates that the model has effectively captured the mean-variance relationship.</p>
 <div class="cell">
 <details open="" class="code-fold">
@@ -1055,7 +1056,7 @@ Caution
 </div>
 </div>
 </div>
-<p>A QL dispersion plot can be inferred similarly to that of a BCV plot. Additionally, we can see how the dispersion estimates are “squeezed” towards the overall trend in variability.</p>
+<p>A QL dispersion plot can be interpreted similarly to that of a BCV plot. Additionally, we can see how the dispersion estimates are “squeezed” towards the overall trend in variability.</p>
 </section>
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
@@ -1082,7 +1083,7 @@ Caution
 <span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>Our <code>tt</code> object holds the results from our DE analysis ordered by <em>p</em>-value, such that the most significant differentially expressed genes exist at the top of the table. We tested 13,299 genes for differential expression, which is a lot. Rendering the entire set of results in our report will impact the file size, so let’s just take the top 1000.</p>
+<p>Our <code>tt</code> object holds the results from our DE analysis ordered by <em>p</em>-value, such that the most significant differentially expressed genes exist at the top of the table. We tested 13,299 genes for differential expression, which is a lot. Rendering the entire set of results in our report will impact its file size, so let’s just take the top 1000.</p>
 <div class="cell">
 <details open="" class="code-fold">
 <summary>Code</summary>
@@ -1209,6 +1210,9 @@ Download as CSV
 </div>
 </section>
 </section>
+</section>
+<section id="concluding-remarks" class="level1">
+<h1>Concluding remarks</h1>
 </section>
 <section id="session-information" class="level1">
 <h1>Session information</h1>
