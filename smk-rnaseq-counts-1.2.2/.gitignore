@@ -1,6 +1,0 @@
-## Workflow-specific
-.snakemake/*
-logs/*
-resources/*
-*.jcounts
-results/salmon/*/aux_info/bootstrap/
