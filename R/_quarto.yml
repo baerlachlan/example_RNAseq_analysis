@@ -2,6 +2,8 @@ project:
   title: "Example RNA-seq Analysis"
   type: website
   output-dir: ../docs
+  render:
+    - dge.qmd
 
 website:
   back-to-top-navigation: true
@@ -13,7 +15,7 @@ website:
       - text: Home
         href: index.qmd
       - text: DGE
-        href: example_RNAseq_analysis.qmd
+        href: dge.qmd
     tools:
       - icon: github
         href: https://github.com/baerlachlan/example_RNAseq_analysis
