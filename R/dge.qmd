@@ -1,6 +1,6 @@
 ---
-title: "Example RNA-seq Analysis"
-subtitle: "Differential Gene Expression"
+title: "Differential Gene Expression"
+subtitle: "Example RNA-seq Analysis"
 author: "Lachlan Baer"
 date-modified: today
 date-format: "DD MMMM, YYYY"
@@ -29,8 +29,6 @@ knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 Todo:
 - Description of Quarto website setup and where to find rendered plots etc.
 - Overview of pre-processing and maybe Snakemake workflow?
-- Importing transcript-level counts from Salmon and aggregating to gene-level
-    - Explain difference between CPM and TPM
 -->
 
 # Introduction
@@ -55,11 +53,11 @@ random_normal <- rnorm(n = 1, mean = 0, sd = 1)
 ```
 
 We can now use this variable to report our result: The randomly sampled number was `r random_normal`.
-You will notice each time you generate the report from this document, the number will change.
+You will notice each time you generate the report from this document the number will change.
 
 ::: {.callout-tip}
 Code chunks require a header, which is displayed in its most simple form as `{r}`.
-I have assigned a label to the above code chunk, which is best practice but completely optional.
+I have assigned a label to the above code chunk, which is best practice but also optional.
 Naming code chunks is handy for debugging, and incredibly useful when the code outputs a plot.
 Quarto generates the plot as a `png` file with a filename corresponding to the chunk label, and saves it in a convenient location.
 This saves the hassle of writing further code to save a figure, and it can easily be shared with colleagues, used for a presentation, etc.
@@ -90,12 +88,12 @@ Simply highlight the desired portion and hit `Ctrl` + `Enter` (or probably `Comm
 
 Bioconductor is an open source project that provides tools and software packages for the analysis and interpretation of high-throughput genomic data.
 If Bioconductor is not already installed on your system, or is an older version, follow the installation instructions on the [Bioconductor website](https://www.bioconductor.org/install/).
-At the time of writing this document, Bioconductor was in version `3.20` of the release cycle, which can be installed as follows:
+At the time of updating this document, Bioconductor was in version `3.21` of the release cycle, which can be installed as follows:
 
 ```{r install_bioc, eval=FALSE}
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
-BiocManager::install(version = "3.20")
+BiocManager::install(version = "3.21")
 ```
 
 If Bioconductor was successfully installed, you will have access to the `BiocManager` package.
@@ -109,6 +107,17 @@ This specifies that that code chunk will not be executed when a report is genera
 ## Loading libraries
 
 The first step in any analysis is to load packages into the environment, allowing easy access to functions required for the analysis.
+Attempting to load a package will error if the package is not already installed on your system.
+For any packages that require installation, we can use the RStudio console to do so, e.g. `BiocManager::install("tidyverse")`.
+You can install all the required packages for this document with the following code:
+
+```{r install, eval=FALSE}
+BiocManager::install(c(
+    "tidyverse", "magrittr", "here", "kableExtra", "RColorBrewer", "ggpubr",
+    "scales", "AnnotationHub", "ggrepel", "ggtext", "glue", "pander",
+    "reactable", "htmltools", "edgeR", "limma", "tximport", "pheatmap"
+))
+```
 
 ```{r pkgs}
 ## Common packages
@@ -129,19 +138,8 @@ library(htmltools)
 ## Document-specific packages
 library(edgeR)
 library(limma)
+library(tximport)
 library(pheatmap)
-```
-
-Running the above code chunk will likely error due to packages not being installed on your system.
-For any packages that require installation, use the RStudio console to do so, e.g. `BiocManager::install("tidyverse")`.
-You can install all the required packages for this document with the following code:
-
-```{r install, eval=FALSE}
-BiocManager::install(c(
-    "tidyverse", "magrittr", "here", "kableExtra", "RColorBrewer", "ggpubr",
-    "scales", "AnnotationHub", "ggrepel", "ggtext", "glue", "pander",
-    "reactable", "htmltools", "edgeR", "limma", "pheatmap"
-))
 ```
 
 Now we set up any further options as desired for the document.
@@ -152,9 +150,55 @@ theme_set(theme_bw())
 ## Allow markdown formatting of title and axis labels with the ggtext package
 theme_update(
     title = element_markdown(),
-    axis.title.x = element_markdown(),
-    axis.title.y = element_markdown()
+    axis.title = element_markdown(),
+    legend.title = element_markdown()
 )
+```
+
+# Annotations
+
+Specify variables that we use to grab reference annotations with the `AnnotationHub` package.
+The Ensembl version specified here should match the version used for reference files during pre-processing.
+
+```{r ensParams}
+ens_species <- "Homo sapiens"
+ens_release <- "112"
+ens_assembly <- "GRCh38"
+primary_chrs <- c(as.character(1:22), "X", "Y", "MT")
+```
+
+```{r ensDb}
+ah <- AnnotationHub() %>%
+    subset(species == ens_species) %>%
+    subset(rdataclass == "EnsDb")
+ahId <- ah$ah_id[str_detect(ah$title, ens_release)]
+ensDb <- ah[[ahId]]
+```
+
+```{r transcripts}
+transcripts <- transcripts(ensDb, filter = AnnotationFilterList(
+    SeqNameFilter(primary_chrs), TxBiotypeFilter("LRG_gene", condition = "!=")
+))
+mcols(transcripts) <- mcols(transcripts)[
+    c("tx_id", "tx_id_version", "tx_is_canonical", "gene_id", "gc_content")
+]
+```
+
+```{r genes}
+genes <- genes(ensDb, filter = AnnotationFilterList(
+    SeqNameFilter(primary_chrs), GeneBiotypeFilter("LRG_gene", condition = "!=")
+))
+mcols(genes) <- mcols(genes)[
+    c("gene_id", "gene_name", "gene_id_version", "gene_biotype", "description")
+]
+```
+
+An `EnsDb` object was obtained for Ensembl release `r ens_release`.
+This contains the information required to set up gene and transcript annotations.
+
+```{r}
+tx2gene <- as_tibble(transcripts) %>%
+    dplyr::select(tx_id, gene_id)
 ```
 
 # Metadata
@@ -169,7 +213,7 @@ A common alternative is to use `setwd()` at the beginning of the document, but I
 
 ```{r meta}
 meta <- read_tsv(
-    here("smk-rnaseq-counts-1.2.2/config/samples.tsv")
+    here("smk-rnaseq-counts-1.2.7/config/samples.tsv")
 ) %>%
     mutate(
         group = fct_relevel(group, c("Control", "UPF1")),
@@ -201,93 +245,72 @@ pal_sex <- pal[3:4] %>%
     set_names(levels(meta$sex))
 ```
 
-# Annotations
-
-Specify variables that we use to grab reference annotations with the `AnnotationHub` package.
-The Ensembl version specified here should match the version used for reference files during pre-processing.
-
-```{r ensParams}
-ens_species <- "Homo sapiens"
-ens_release <- "112"
-ens_assembly <- "GRCh38"
-```
-
-```{r ensDb}
-ah <- AnnotationHub() %>%
-    subset(species == ens_species) %>%
-    subset(rdataclass == "EnsDb")
-ahId <- ah$ah_id[str_detect(ah$title, ens_release)]
-ensDb <- ah[[ahId]]
-```
-
-```{r primary_chrs}
-primary_chrs <- c(as.character(1:22), "X", "Y", "MT")
-```
-
-```{r transcripts}
-transcripts <- transcripts(ensDb)
-tx_len <- exonsBy(ensDb, "tx") %>%
-    width() %>%
-    lapply(sum) %>%
-    unlist(use.names = TRUE) %>%
-    enframe(name = "tx_id", value = "length")
-mcols(transcripts) <- mcols(transcripts)[
-    c("tx_id", "gene_id", "gc_content")
-] %>%
-    as.data.frame() %>%
-    left_join(tx_len)
-```
-
-```{r gene_gclen}
-gene_gclen <- transcripts %>%
-    mcols() %>%
-    as_tibble() %>%
-    group_by(gene_id) %>%
-    summarise(
-        gc_content = sum(gc_content*length) / sum(length),
-        length = ceiling(median(length))
-    )
-```
-
-```{r genes}
-genes <- genes(ensDb)
-mcols(genes) <- mcols(genes)[
-    c("gene_id", "gene_name", "gene_biotype", "entrezid")
-] %>%
-    as.data.frame() %>%
-    left_join(gene_gclen)
-```
-
-An `EnsDb` object was obtained for Ensembl release `r ens_release`.
-This contains the information required to set up gene and transcript annotations.
-Gene-level estimates of GC content and length were also generated which are required for assessing potential biases in downstream analysis.
-
 # Counts
 
-## Loading count data
+## Importing count data
 
-Gene-level count data was previously generated by `featureCounts` using the Snakemake workflow.
-Normally I do not push `featureCounts` output files to GitHub, as they often border the file size limit of 50MB.
-Instead I transfer them manually from the Phoenix HPC to my local device.
-This means the count data is not backed up, but, the Snakemake code still is.
+Two common choices for generating counts from RNA-seq data are `Salmon` or `featureCounts`.
+
+`Salmon` is a lightweight, alignment-free (or quasi-mapping) tool that directly quantifies transcript-level abundance from FASTQ files using a pre-built transcriptome index.
+It corrects for sequence- and bias-related factors like GC content and positional bias, and produces transcript-level estimates such as TPM, as well as estimated counts.
+`Salmon` is especially efficient and well-suited for workflows that require fast transcript-level resolution, or when downstream tools like `tximport` are used to aggregate transcript-level estimates into gene-level counts.
+
+`featureCounts` is an alignment-based tool that quantifies reads by counting how many align to genomic features such as genes or exons.
+It relies on a pre-aligned BAM file, typically produced by aligners like `STAR` or `HISAT2`, and uses a reference annotation to assign reads to features.
+Because it operates at the gene- or exon-level on genome-aligned reads, featureCounts is widely used in traditional RNA-seq pipelines, particularly when accurate splice-aware alignment is important.
+It produces raw counts suitable for differential expression analysis with tools like `edgeR` and `DESEq2`.
+
+Counts files can be large so I tend not to push these to GitHub, instead opting to transfer them manually from the Phoenix HPC to my local device.
+This means the count data is not tracked, but, the Snakemake code still is.
 Snakemake ensures reproducibility and can always be used to generate the same file from raw data.
 This is the approach I take for any large files; as long as we have access to the raw data, our code should be written such that it can consistently produce the same outputs.
-For the sake of this example the data is included in the repository.
+For the purpose of this example the count data is included in the repository.
 
-Let's load the `featureCounts` output and apply some modifications to achieve a nicely formatted `data.frame`.
+Examples of importing count data from both `Salmon` and `featureCounts` is provided below, just click the appropriate tab!
+Note, however, we'll use `Salmon` counts for the remainder of this document.
 
-```{r counts}
+::: {.panel-tabset}
+
+### `featureCounts`
+
+```{r featureCounts}
 counts <- read_tsv(
-    here("smk-rnaseq-counts-1.2.2/results/featureCounts/reverse/all.featureCounts"),
+    here("smk-rnaseq-counts-1.2.7/results/featureCounts/reverse/all.featureCounts"),
     comment = "#"
 ) %>%
     dplyr::select(-c(Chr, Start, End, Strand, Length)) %>%
     set_colnames(basename(colnames(.))) %>%
     set_colnames(str_remove(colnames(.), "\\.bam")) %>%
     as.data.frame() %>%
-    column_to_rownames("Geneid") %>%
-    .[,colnames(.) %in% meta$sample]
+    column_to_rownames("Geneid")
+## Subset for genes on primary chromosomes & samples in metadata
+counts <- counts[
+    rownames(counts) %in% genes$gene_id,
+    colnames(counts) %in% meta$sample
+]
 ```
+
+### `Salmon`
+
+```{r salmon}
+txi <- list.files(
+    here("smk-rnaseq-counts-1.2.7/results/salmon"),
+    pattern = "quant.sf", recursive = TRUE, full.names = TRUE
+) %>%
+    set_names(basename(dirname(.))) %>%
+    tximport(
+        type = "salmon", tx2gene = tx2gene, ignoreTxVersion = TRUE,
+        countsFromAbundance = "lengthScaledTPM"
+    )
+counts <- txi$counts
+## Subset for genes on primary chromosomes & samples in metadata
+counts <- counts[
+    rownames(counts) %in% genes$gene_id,
+    colnames(counts) %in% meta$sample
+]
+```
+
+:::
 
 ::: {.callout-tip}
 The dot/period, `.`, is commonly used within a chunk of code chained together with `magrittr` pipe operator, `%>%`.
@@ -304,6 +327,24 @@ While the overall goal and methodology is conceptually similar between the two a
 There is no correct choice between the two packages, they are both incredibly robust approaches that perform as such.
 The [edgeR User's Guide](https://www.bioconductor.org/packages/devel/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf) is filled with extensive information and use cases for the methodology implemented in the following sections.
 :::
+
+## CPM vs TPM
+
+You have probably heard Counts Per Million (CPM) and Transcripts Per Million (TPM) used to describe normalised expression units in RNA-seq analysis.
+These terms are sometimes used interchangeably, but they actually differ in what they normalise for.
+CPM adjusts raw read counts for sequencing depth by scaling to the total number of reads in each sample, allowing for comparison of expression levels across samples.
+TPM goes a step further by also adjusting for effective transcript length, enabling better comparisons across both genes and samples within a dataset.
+This distinction is important because longer transcripts tend to accumulate more reads simply due to their length, which TPM corrects for.
+For further explanation, see: [What the FPKM? A review of RNA-Seq expression units](https://haroldpimentel.wordpress.com/2014/05/08/what-the-fpkm-a-review-rna-seq-expression-units/).
+
+In the example using `Salmon`, you may have noticed the argument `countsFromAbundance = "lengthScaledTPM"` passed to `tximport`. 
+This setting produces pseudo-counts: values that begin as TPMs but are scaled back to count-like units using both transcript length and library size information. 
+Although they originate from normalised values, these pseudo-counts are structured to resemble raw counts in scale and statistical properties, making them suitable for downstream differential expression analysis methods which expect count-like input.
+
+Importantly these pseudo-counts have already been adjusted for effective transcript length.
+This eliminates a major confounder in RNA-seq analysis, the correlation between expression and transcript length.
+Eliminating this correlation is particularly important when aggregating transcript-level estimates to the gene level, where differential transcript usage can otherwise introduce misleading abundance signals.
+As a result, we can use CPM values from pseudo-counts for filtering and exploratory visualisation.
 
 ## Filtering count data
 
@@ -334,7 +375,7 @@ dge_unfilt <- DGEList(
     genes = dge_genes
 ) %>%
     normLibSizes()
-## Keep genes that satisfy minumum CPM threshold
+## Keep genes that satisfy minumum CPM threshold in X samples
 keep_genes <- rowSums(cpm(dge_unfilt$counts) >= min_cpm) >= min_samps
 dge_list <- dge_unfilt[keep_genes, , keep.lib.sizes=FALSE] %>%
     normLibSizes()
@@ -398,7 +439,7 @@ In particular, we expect samples belonging to the same group to follow a similar
 # Principal Component Analysis
 
 Principal Component Analysis (PCA) projects high-dimensional data (e.g. gene counts) into a smaller set of orthogonal principal components.
-This is helpful for quality assessment, whereby outlier samples can be identified.
+This is helpful for quality assessment and the identification of outlier samples.
 Principal components can be conceptualised as sources of variation within the data.
 The first principal component (PC1) captures the largest source of variation, while the second component captures the second largest, etc.
 Therefore, by plotting the principal components, we can infer that clustered samples are more similar than those that separate.
@@ -825,8 +866,8 @@ tt %>%
 
 # Session information
 
-I always end my documents by printing the session information.
-This lists version information about the operating system, R and its attached packages, which has definitely helped me in the past when things have broken.
+It's useful to print the session information at the end of your document, listing version information about the operating system, R and its attached packages.
+This allows reproducibility and has definitely helped me in the past when things have broken after a version update.
 
 ```{r session_info}
 sessionInfo() %>%
